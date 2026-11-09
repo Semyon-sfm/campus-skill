@@ -1,0 +1,248 @@
+/* Дополнения к дизайн-системе из макета.
+   campusskill.css менять нельзя — он перенесён 1:1, чтобы сверять с макетом.
+   Здесь только то, что добавилось при переносе прототипа в настоящий MPA:
+   1) базовый reset, который в макете давала обёртка артефакта;
+   2) варианты кнопочных классов для настоящих <a href>;
+   3) экраны входа и регистрации, которых в макете не было. */
+
+/* --- 1. Базовый reset --- */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f8f8fc;
+}
+
+#campusskill-light *,
+#campusskill-light *::before,
+#campusskill-light *::after {
+  box-sizing: border-box;
+}
+
+#campusskill-light button,
+#campusskill-light input,
+#campusskill-light select,
+#campusskill-light textarea {
+  font: inherit;
+  color: inherit;
+}
+
+#campusskill-light button,
+#campusskill-light select,
+#campusskill-light [role="tab"] {
+  cursor: pointer;
+}
+
+#campusskill-light button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+#campusskill-light ul,
+#campusskill-light ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#campusskill-light :focus-visible {
+  outline: 2px solid var(--sk-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Макет жил в iframe без отступов — на странице нужна рамка вокруг приложения. */
+#campusskill-light {
+  padding: 16px;
+  min-height: 100vh;
+}
+
+@media (max-width: 650px) {
+  #campusskill-light {
+    padding: 0;
+  }
+
+  #campusskill-light .sk-app {
+    border: 0;
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}
+
+#campusskill-light .sk-app {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* --- 2. Ссылки в роли кнопок --- */
+
+/* В макете навигация и карточки были <button> + JS-роутинг.
+   В MPA это настоящие ссылки, поэтому дублируем селекторы для <a>. */
+
+#campusskill-light a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#campusskill-light .sk-nav a {
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  color: var(--sk-muted);
+}
+
+#campusskill-light .sk-nav a[aria-current="page"] {
+  color: var(--sk-accent);
+  font-weight: 600;
+}
+
+#campusskill-light .sk-nav a:hover {
+  color: var(--sk-ink);
+}
+
+#campusskill-light a.sk-primary:hover {
+  background: var(--sk-accent-hover);
+}
+
+#campusskill-light a.sk-secondary:hover {
+  background: #f4f2fa;
+}
+
+#campusskill-light a.sk-card-title h3:hover,
+#campusskill-light a.sk-mentor-link:hover {
+  color: var(--sk-accent);
+}
+
+#campusskill-light .sk-back {
+  cursor: pointer;
+}
+
+#campusskill-light .sk-logout-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+#campusskill-light .sk-header-cta {
+  padding: 8px 13px;
+  font-size: 12px;
+  min-height: 0;
+}
+
+@media (max-width: 420px) {
+  #campusskill-light .sk-nav a {
+    font-size: 12px;
+    padding: 6px 0;
+    min-height: 38px;
+  }
+}
+
+/* --- 3. Экраны входа и регистрации --- */
+
+#campusskill-light .sk-auth {
+  max-width: 420px;
+  margin: 24px auto 48px;
+}
+
+#campusskill-light .sk-auth .sk-form-panel {
+  margin-top: 22px;
+}
+
+#campusskill-light .sk-auth-switch {
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--sk-muted);
+  text-align: center;
+}
+
+#campusskill-light .sk-auth-switch a {
+  color: var(--sk-accent);
+  font-weight: 500;
+}
+
+#campusskill-light .sk-auth .sk-field ul.errorlist,
+#campusskill-light .sk-form-errors {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #fbeced;
+  color: var(--sk-error);
+  font-size: 12px;
+}
+
+#campusskill-light .sk-auth .sk-field ul.errorlist {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+#campusskill-light .sk-auth .sk-field ul.errorlist li {
+  color: var(--sk-error);
+  font-size: 11px;
+}
+
+#campusskill-light .sk-demo-hint {
+  margin-top: 20px;
+  padding: 13px 15px;
+  border: 1px dashed var(--sk-line);
+  border-radius: 9px;
+  background: var(--sk-surface);
+  font-size: 11px;
+  color: var(--sk-muted);
+}
+
+#campusskill-light .sk-demo-hint code {
+  color: var(--sk-accent);
+  font-size: 11px;
+}
+
+/* --- 4. Мелочи, которых в макете не было --- */
+
+/* Скелетон на время первой загрузки списка из API. */
+#campusskill-light .sk-loading {
+  padding: 34px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--sk-muted);
+}
+
+#campusskill-light .sk-skill-progress svg {
+  width: 14px;
+  height: 14px;
+  color: var(--sk-accent);
+  flex-shrink: 0;
+}
+
+#campusskill-light .sk-skill-progress span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Ряд участника у ментора: статус и действие ментора. */
+#campusskill-light .sk-person-row .sk-person-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#campusskill-light .sk-person-row .sk-text-button {
+  font-size: 11px;
+  padding: 0;
+}
+
+@media (max-width: 650px) {
+  #campusskill-light .sk-person-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  #campusskill-light .sk-person-row .sk-person-actions {
+    justify-content: flex-start;
+  }
+}
