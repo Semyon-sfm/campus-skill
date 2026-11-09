@@ -1,0 +1,71 @@
+{% load static %}<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CampusSkill{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/campusskill.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+{# Обёртка обязательна: вся дизайн-система отскоплена на #campusskill-light. #}
+<div id="campusskill-light">
+  <div class="sk-app">
+    <header class="sk-header">
+      <a class="sk-brand cursor-interaction" href="{% url 'workshops:catalog' %}"
+         aria-label="CampusSkill — главная">
+        <span class="sk-logo">cs<span></span></span><span>CampusSkill</span>
+      </a>
+
+      <nav class="sk-nav" aria-label="Основные разделы">
+        {% for item in nav_items %}
+          <a href="{% url item.url_name %}"
+             {% if item.key == active_nav %}aria-current="page"{% endif %}>{{ item.label }}</a>
+        {% endfor %}
+      </nav>
+
+      <div class="sk-account-tools">
+        {% if user.is_authenticated %}
+          <a class="sk-icon-button cursor-interaction" href="{% url 'notifications:list' %}"
+             aria-label="Уведомления">
+            <i data-lucide="bell" aria-hidden="true"></i>
+            <span class="sk-unread" data-unread {% if not unread_count %}hidden{% endif %}></span>
+          </a>
+          <a class="sk-profile-button cursor-interaction" href="{% url 'accounts:profile' %}"
+             aria-label="Профиль и настройки">
+            <span>{{ user.initials }}</span>
+          </a>
+          <form method="post" action="{% url 'accounts:logout' %}" class="sk-logout-form">
+            {% csrf_token %}
+            <button type="submit" class="sk-icon-button cursor-interaction" aria-label="Выйти">
+              <i data-lucide="log-out" aria-hidden="true"></i>
+            </button>
+          </form>
+        {% else %}
+          <a class="sk-text-button cursor-interaction" href="{% url 'accounts:login' %}">Войти</a>
+          <a class="sk-primary cursor-interaction sk-header-cta"
+             href="{% url 'accounts:register' %}">Регистрация</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="sk-flash" data-flash role="status" hidden></div>
+
+    <main class="sk-main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="sk-footer">
+      <span>CampusSkill <span class="sk-footer-dot">·</span> Студенты учат студентов</span>
+      <span>Платформа обмена навыками и воркшопов</span>
+    </footer>
+
+    <div class="sk-announcement sk-sr" aria-live="polite" data-announcement></div>
+  </div>
+</div>
+
+<script src="{% static 'js/icons.js' %}"></script>
+<script src="{% static 'js/api.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
