@@ -1,0 +1,31 @@
+{# Единственное место, где живёт разметка карточки воркшопа.
+   Карточки всегда приходят из /api/workshops/ и рендерятся cards.js,
+   поэтому дубля «серверный include + JS-шаблон» нет. #}
+<template id="sk-workshop-card-template">
+  <article class="sk-workshop-card">
+    <a class="sk-workshop-art cursor-interaction" data-open-art>
+      <span class="sk-skill-label" data-skill></span>
+      <i data-art-icon aria-hidden="true"></i>
+      <span class="sk-art-word" aria-hidden="true" data-art-word></span>
+      <span class="sk-format-label" data-format></span>
+    </a>
+    <div class="sk-workshop-card-body">
+      <div class="sk-card-date" data-date></div>
+      <a class="sk-card-title cursor-interaction" data-open-title><h3 data-title></h3></a>
+      <p class="sk-card-description" data-description></p>
+      <a class="sk-mentor-link cursor-interaction" data-mentor-link>
+        <span class="sk-tiny-avatar" data-mentor-initials></span>
+        <span data-mentor-name></span>
+        <span class="sk-rating" data-rating></span>
+      </a>
+      <div class="sk-card-facts">
+        <span><i data-lucide="clock-3" aria-hidden="true"></i><span data-duration></span></span>
+        <span data-availability></span>
+      </div>
+      <div class="sk-card-bottom">
+        <strong data-price></strong>
+        <a class="sk-primary cursor-interaction" data-open-button>Подробнее</a>
+      </div>
+    </div>
+  </article>
+</template>

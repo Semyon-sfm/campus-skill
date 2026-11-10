@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Воркшопы кампуса — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro sk-catalog-intro">
+    <div>
+      <div class="sk-eyebrow">ЗНАНИЯМИ СТОИТ ДЕЛИТЬСЯ</div>
+      <h1>Новый навык —<br>за один вечер.</h1>
+      <p>Практические воркшопы от студентов твоего кампуса.</p>
+    </div>
+    <div class="sk-intro-illustration" aria-hidden="true">
+      <span class="sk-mini-ticket"><i data-lucide="code-2"></i> Python</span>
+      <span class="sk-mini-ticket"><i data-lucide="panels-top-left"></i> Дизайн</span>
+      <span class="sk-illustration-star"><i data-lucide="sparkles"></i></span>
+      <span class="sk-illustration-caption">учиться вместе</span>
+    </div>
+  </div>
+
+  {# Бар навыков рендерим на сервере, а переключение идёт без перезагрузки. #}
+  <div class="sk-category-bar" aria-label="Навыки" data-categories>
+    <button type="button" class="sk-category cursor-interaction" data-skill=""
+            aria-pressed="true">Все навыки</button>
+    {% for skill in skills %}
+      <button type="button" class="sk-category cursor-interaction"
+              data-skill="{{ skill.slug }}" aria-pressed="false">
+        <i data-lucide="{{ skill.icon }}" aria-hidden="true"></i>{{ skill.label }}
+      </button>
+    {% endfor %}
+  </div>
+
+  <div class="sk-catalog-tools">
+    <label class="sk-search">
+      <i data-lucide="search" aria-hidden="true"></i>
+      <input type="search" placeholder="Воркшоп, навык или ментор"
+             aria-label="Поиск воркшопов" data-search>
+    </label>
+    <div class="sk-filter-row">
+      <label>Формат
+        <select data-filter="format">
+          <option value="">Любой формат</option>
+          <option value="online">Онлайн</option>
+          <option value="offline">Офлайн</option>
+        </select>
+      </label>
+      <label>Дата
+        <select data-filter="date">
+          <option value="">Все даты</option>
+          <option value="week">На этой неделе</option>
+          <option value="later">Позже</option>
+        </select>
+      </label>
+      <label>Стоимость
+        <select data-filter="price">
+          <option value="">Любая</option>
+          <option value="free">Бесплатно</option>
+          <option value="paid">Платно</option>
+        </select>
+      </label>
+      <label>Уровень
+        <select data-filter="level">
+          <option value="">Любой уровень</option>
+          <option value="start">С нуля</option>
+          <option value="basic">Есть база</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="sk-section-heading">
+    <h2>Ближайшие воркшопы</h2>
+    <span class="sk-subtle" data-result-count aria-live="polite"></span>
+  </div>
+
+  <div class="sk-workshop-grid" data-workshop-list></div>
+
+  <div class="sk-empty" data-empty hidden>
+    <i data-lucide="search-x" aria-hidden="true"></i>
+    <h3>Пока ничего не нашлось</h3>
+    <p>Попробуй другой навык или измени фильтры.</p>
+    <button type="button" class="sk-secondary cursor-interaction" data-reset>
+      Сбросить фильтры
+    </button>
+  </div>
+
+  <div class="sk-show-more">
+    <button type="button" class="sk-secondary cursor-interaction" data-more hidden>
+      Показать ещё
+    </button>
+  </div>
+
+  <div class="sk-teach-line">
+    <div class="sk-small-icon"><i data-lucide="graduation-cap" aria-hidden="true"></i></div>
+    <div>
+      <h3>Умеешь то, чему хотят научиться другие?</h3>
+      <p>Проведи воркшоп и поделись своим опытом.</p>
+    </div>
+    {% if user.is_authenticated %}
+      {% if user.is_mentor %}
+        <a class="sk-text-button cursor-interaction" href="{% url 'workshops:studio' %}">
+          Мои воркшопы <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+        </a>
+      {% else %}
+        <button type="button" class="sk-text-button cursor-interaction" data-become-mentor>
+          Стать ментором <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+        </button>
+      {% endif %}
+    {% else %}
+      <a class="sk-text-button cursor-interaction" href="{% url 'accounts:register' %}">
+        Стать ментором <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+      </a>
+    {% endif %}
+  </div>
+
+  {% include "partials/workshop_card_template.html" %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/cards.js' %}"></script>
+  <script src="{% static 'js/catalog.js' %}"></script>
+{% endblock %}
