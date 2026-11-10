@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Воркшоп недоступен — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-narrow">
+    <div class="sk-empty">
+      <i data-lucide="eye" aria-hidden="true"></i>
+      <h3>Воркшоп ещё не опубликован</h3>
+      <p>Ментор готовит встречу — она появится в каталоге после публикации.</p>
+      <a class="sk-primary cursor-interaction" href="{% url 'workshops:catalog' %}">
+        В каталог
+      </a>
+    </div>
+  </div>
+{% endblock %}

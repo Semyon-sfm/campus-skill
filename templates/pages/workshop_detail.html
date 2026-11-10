@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ workshop.title }} — CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction"
+     href="{% if is_owner %}{% url 'workshops:studio' %}{% else %}{% url 'workshops:catalog' %}{% endif %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i>
+    {% if is_owner %}Мои воркшопы{% else %}К каталогу{% endif %}
+  </a>
+
+  <div class="sk-detail-layout">
+    <article class="sk-detail-content">
+      <div class="sk-detail-cover sk-skill-{{ workshop.skill.slug }}">
+        <span class="sk-skill-label">{{ workshop.display_tag }}</span>
+        <i data-lucide="{{ workshop.skill.icon }}" aria-hidden="true"></i>
+        <span aria-hidden="true">{{ workshop.display_art }}</span>
+      </div>
+
+      <div class="sk-detail-heading">
+        <div class="sk-eyebrow">{{ workshop.level_label }}</div>
+        <h1>{{ workshop.title }}</h1>
+        <p>{{ workshop.description }}</p>
+        <a class="sk-mentor-link cursor-interaction"
+           href="{% url 'accounts:mentor_profile' workshop.mentor.pk %}">
+          <span class="sk-avatar">{{ workshop.mentor.initials }}</span>
+          <span>
+            <strong>{{ workshop.mentor.full_name }}</strong>
+            <small>{{ workshop.mentor.experience }}</small>
+          </span>
+          <span class="sk-rating">
+            {% if workshop.mentor.mentor_rating %}★ {{ workshop.mentor.mentor_rating }}{% else %}Новый{% endif %}
+          </span>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <section class="sk-detail-section">
+        <h2>Что получится в конце</h2>
+        <p>{{ workshop.outcome|default:workshop.description }}</p>
+      </section>
+
+      <section class="sk-detail-section">
+        <h2>Программа воркшопа</h2>
+        <ol class="sk-program">
+          {% for item in workshop.program %}<li>{{ item }}</li>{% endfor %}
+        </ol>
+      </section>
+
+      <section class="sk-detail-section">
+        <h2>Что понадобится</h2>
+        <p>{{ workshop.requirements|default:"Ничего особенного — приходи с интересом." }}</p>
+      </section>
+
+      <section class="sk-detail-section">
+        <div class="sk-section-heading">
+          <h2>Отзывы участников</h2>
+          <span class="sk-rating">
+            {% if workshop.rating %}
+              ★ {{ workshop.rating }} · {{ workshop.review_count }}
+            {% else %}Пока нет оценок{% endif %}
+          </span>
+        </div>
+        <div>
+          {% for review in reviews %}
+            <article class="sk-review-quote">
+              <div>
+                <strong>{{ review.author.full_name }}</strong>
+                <span class="sk-rating">★ {{ review.workshop_score }}</span>
+              </div>
+              <p>{{ review.text }}</p>
+            </article>
+          {% empty %}
+            <p class="sk-subtle">Отзывы появятся после первой встречи.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </article>
+
+    <aside class="sk-booking-sidebar">
+      <div class="sk-booking-card">
+        <div class="sk-price">{{ workshop.price_label }}</div>
+        <span class="sk-subtle">
+          {% if workshop.amount %}Оплата напрямую ментору{% else %}Участие бесплатное{% endif %}
+        </span>
+        <div class="sk-booking-facts">
+          <div><i data-lucide="calendar-days" aria-hidden="true"></i>
+            <span>{{ workshop.full_date_label }}</span></div>
+          <div><i data-lucide="clock-3" aria-hidden="true"></i>
+            <span>{{ workshop.duration_label }}</span></div>
+          <div><i data-lucide="map-pin" aria-hidden="true"></i>
+            <span>{{ workshop.place }}</span></div>
+          <div><i data-lucide="users" aria-hidden="true"></i>
+            <span>{{ workshop.availability_label }}</span></div>
+        </div>
+
+        {% if action.kind == "enroll" %}
+          {% if user.is_authenticated %}
+            <a class="sk-primary sk-full cursor-interaction"
+               href="{% url 'enrollments:enroll' workshop.pk %}">{{ action.label }}</a>
+          {% else %}
+            <a class="sk-primary sk-full cursor-interaction"
+               href="{% url 'accounts:login' %}?next={% url 'enrollments:enroll' workshop.pk %}">
+              Войти и записаться
+            </a>
+          {% endif %}
+        {% elif action.kind == "learning" %}
+          <a class="sk-primary sk-full cursor-interaction"
+             href="{% url 'enrollments:learning' %}">{{ action.label }}</a>
+        {% elif action.kind == "participants" %}
+          <a class="sk-primary sk-full cursor-interaction"
+             href="{% url 'workshops:participants' workshop.pk %}">{{ action.label }}</a>
+        {% elif action.kind == "edit" %}
+          <a class="sk-primary sk-full cursor-interaction"
+             href="{% url 'workshops:editor_edit' workshop.pk %}">{{ action.label }}</a>
+        {% else %}
+          <button type="button" class="sk-primary sk-full" disabled>{{ action.label }}</button>
+        {% endif %}
+
+        <p class="sk-booking-note">{{ action.note }}</p>
+      </div>
+      <div class="sk-sidebar-note">
+        <i data-lucide="bell-ring" aria-hidden="true"></i>
+        <span>После записи напомним о встрече в личном кабинете.</span>
+      </div>
+    </aside>
+  </div>
+
+  {# Похожие воркшопы — те же карточки, данные из /api/workshops/<id>/related/ #}
+  <section class="sk-recommendations" data-recommendations hidden>
+    <div class="sk-section-heading">
+      <h2>Продолжи изучать навык</h2>
+      <a class="sk-text-button cursor-interaction"
+         href="{% url 'workshops:catalog' %}?skill={{ workshop.skill.slug }}">
+        В каталог <i data-lucide="arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+    <div class="sk-workshop-grid" data-related></div>
+  </section>
+
+  {% include "partials/workshop_card_template.html" %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/cards.js' %}"></script>
+  <script>
+    (function () {
+      var container = document.querySelector("[data-related]");
+      var section = document.querySelector("[data-recommendations]");
+      window.CampusApi
+        .get("/api/workshops/{{ workshop.pk }}/related/")
+        .then(function (items) {
+          if (!items.length) return;
+          window.CampusCards.renderInto(container, items, "replace");
+          section.hidden = false;
+        })
+        .catch(function () { /* блок рекомендаций просто не показываем */ });
+    })();
+  </script>
+{% endblock %}

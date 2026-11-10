@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}{{ success_title }} — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-success">
+    <div class="sk-success-icon"><i data-lucide="check" aria-hidden="true"></i></div>
+    <div class="sk-eyebrow">{{ success_label }}</div>
+    <h1>{{ success_title }}</h1>
+    <p>{{ success_copy }}</p>
+
+    <div class="sk-success-summary">
+      <h3>{{ workshop.title }}</h3>
+      <span>{{ workshop.full_date_label }}</span>
+      <span>{{ workshop.place }}</span>
+    </div>
+
+    <div class="sk-action-row">
+      <a class="sk-primary cursor-interaction"
+         href="{% url 'enrollments:learning' %}{% if enrollment.status == 'waitlist' %}?tab=waitlist{% endif %}">
+        Моё обучение
+      </a>
+      <a class="sk-secondary cursor-interaction" href="{% url 'workshops:catalog' %}">
+        В каталог
+      </a>
+    </div>
+  </div>
+{% endblock %}

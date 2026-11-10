@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Запись на «{{ workshop.title }}» — CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'workshops:detail' workshop.pk %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> К воркшопу
+  </a>
+
+  <div class="sk-narrow">
+    <div class="sk-eyebrow">ЗАПИСЬ НА ВОРКШОП</div>
+    <h1>{{ heading }}</h1>
+    <p class="sk-intro-copy">{{ copy }}</p>
+
+    <div class="sk-order-card">
+      <span class="sk-tag">{{ workshop.display_tag }}</span>
+      <h2>{{ workshop.title }}</h2>
+      <div class="sk-order-meta">
+        <span>{{ workshop.full_date_label }}</span>
+        <span>{{ workshop.place }}</span>
+        <span>{{ workshop.mentor.full_name }}</span>
+      </div>
+
+      <div class="sk-order-person">
+        <span class="sk-avatar">{{ user.initials }}</span>
+        <div>
+          <strong>{{ user.full_name }}</strong>
+          <small>Участник{% if user.study_group %} · {{ user.study_group }}{% endif %}</small>
+        </div>
+      </div>
+
+      <div class="sk-order-price">
+        <span>Стоимость участия</span>
+        <strong>{{ workshop.price_label }}</strong>
+      </div>
+
+      <p class="sk-subtle">
+        {% if waiting %}
+          Мест нет — запишем в лист ожидания и сообщим, если место освободится.
+        {% elif workshop.requires_approval %}
+          Ментор подтверждает заявки вручную.
+        {% else %}
+          Место закрепим сразу после подтверждения.
+        {% endif %}
+      </p>
+
+      <p class="sk-validation" role="alert" data-error hidden></p>
+
+      <button type="button" class="sk-primary sk-full cursor-interaction" data-confirm>
+        {{ confirm_label }}
+      </button>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    /* Сама запись — POST на REST API, страница успеха открывается после ответа. */
+    (function () {
+      var api = window.CampusApi;
+      var button = document.querySelector("[data-confirm]");
+      var error = document.querySelector("[data-error]");
+      var label = button.textContent.trim();
+
+      button.addEventListener("click", function () {
+        button.disabled = true;
+        button.textContent = "Записываем…";
+        error.hidden = true;
+
+        api
+          .post("/api/workshops/{{ workshop.pk }}/enroll/")
+          .then(function () {
+            window.location.href = "{% url 'enrollments:success' workshop.pk %}";
+          })
+          .catch(function (err) {
+            if (err.status === 409) {
+              window.location.href = "{% url 'enrollments:learning' %}";
+              return;
+            }
+            button.disabled = false;
+            button.textContent = label;
+            error.textContent = api.message(err.payload);
+            error.hidden = false;
+          });
+      });
+    })();
+  </script>
+{% endblock %}
