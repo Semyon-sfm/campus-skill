@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Отзыв о «{{ workshop.title }}» — CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'enrollments:learning' %}?tab=history">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> К истории
+  </a>
+
+  <div class="sk-narrow">
+    <div class="sk-eyebrow">ОБРАТНАЯ СВЯЗЬ</div>
+    <h1>Как прошёл воркшоп?</h1>
+    <p class="sk-intro-copy">
+      {{ workshop.title }} · {{ workshop.day_month_label }} · {{ workshop.mentor.full_name }}
+    </p>
+
+    {% if existing %}
+      <div class="sk-form-panel">
+        <h2>Отзыв уже оставлен</h2>
+        <p class="sk-intro-copy">
+          Оценка воркшопа: ★ {{ existing.workshop_score }},
+          работа ментора: ★ {{ existing.mentor_score }}.
+        </p>
+        <p class="sk-intro-copy">{{ existing.text }}</p>
+        <a class="sk-secondary cursor-interaction"
+           href="{% url 'enrollments:learning' %}?tab=history">К истории</a>
+      </div>
+    {% else %}
+      <form class="sk-form-panel" data-review-form>
+        <fieldset class="sk-rating-field">
+          <legend>Оценка воркшопа</legend>
+          <div class="sk-stars" data-stars="workshop" aria-label="Оценка воркшопа"></div>
+        </fieldset>
+        <fieldset class="sk-rating-field">
+          <legend>Работа ментора</legend>
+          <div class="sk-stars" data-stars="mentor" aria-label="Оценка ментора"></div>
+        </fieldset>
+
+        <label class="sk-field">Что было полезно? Что можно улучшить?
+          <textarea rows="4" minlength="10" maxlength="1200" required
+                    placeholder="Расскажи о практике, объяснениях и организации встречи…"
+                    data-review-text></textarea>
+        </label>
+
+        <p class="sk-validation" role="alert" data-review-error hidden></p>
+        <button type="submit" class="sk-primary cursor-interaction">Опубликовать отзыв</button>
+      </form>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {% if not existing %}
+  <script>
+    /* Звёзды собираются на клиенте, отзыв уходит в POST /api/reviews/ */
+    (function () {
+      var api = window.CampusApi;
+      var form = document.querySelector("[data-review-form]");
+      var error = document.querySelector("[data-review-error]");
+      var scores = { workshop: 0, mentor: 0 };
+
+      document.querySelectorAll("[data-stars]").forEach(function (group) {
+        var key = group.dataset.stars;
+        for (var score = 1; score <= 5; score += 1) {
+          var star = document.createElement("button");
+          star.type = "button";
+          star.className = "cursor-interaction";
+          star.textContent = "★";
+          star.setAttribute("aria-label", "Оценка " + score);
+          star.dataset.score = String(score);
+          star.addEventListener("click", function (event) {
+            var picked = Number(event.currentTarget.dataset.score);
+            scores[key] = picked;
+            group.querySelectorAll("button").forEach(function (node, index) {
+              node.classList.toggle("sk-star-filled", index < picked);
+              node.setAttribute("aria-pressed", String(index < picked));
+            });
+          });
+          group.append(star);
+        }
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var text = form.querySelector("[data-review-text]").value.trim();
+
+        if (!scores.workshop || !scores.mentor) {
+          error.textContent = "Поставь обе оценки — воркшопу и ментору.";
+          error.hidden = false;
+          return;
+        }
+
+        var submit = form.querySelector("button[type=submit]");
+        submit.disabled = true;
+        error.hidden = true;
+
+        api
+          .post("/api/reviews/", {
+            workshop: {{ workshop.pk }},
+            workshop_score: scores.workshop,
+            mentor_score: scores.mentor,
+            text: text,
+          })
+          .then(function () {
+            window.location.href = "{% url 'enrollments:learning' %}?tab=history";
+          })
+          .catch(function (err) {
+            submit.disabled = false;
+            error.textContent = api.message(err.payload);
+            error.hidden = false;
+          });
+      });
+    })();
+  </script>
+  {% endif %}
+{% endblock %}

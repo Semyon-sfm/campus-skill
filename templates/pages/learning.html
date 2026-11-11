@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Моё обучение — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro">
+    <div>
+      <div class="sk-eyebrow">ЛИЧНЫЙ КАБИНЕТ</div>
+      <h1>Моё обучение</h1>
+      <p>Предстоящие встречи, история и навыки, которые ты развиваешь.</p>
+    </div>
+  </div>
+
+  <div class="sk-learning-layout">
+    <div>
+      <div class="sk-tabs" role="tablist" aria-label="Мои воркшопы" data-learning-tabs>
+        <button type="button" role="tab" data-tab="upcoming"
+                aria-selected="{% if active_tab == 'upcoming' %}true{% else %}false{% endif %}"
+                aria-controls="sk-learning-items">Предстоящие</button>
+        <button type="button" role="tab" data-tab="history"
+                aria-selected="{% if active_tab == 'history' %}true{% else %}false{% endif %}"
+                aria-controls="sk-learning-items">История</button>
+        <button type="button" role="tab" data-tab="waitlist"
+                aria-selected="{% if active_tab == 'waitlist' %}true{% else %}false{% endif %}"
+                aria-controls="sk-learning-items">Лист ожидания</button>
+      </div>
+      <div id="sk-learning-items" data-enrollment-list></div>
+    </div>
+
+    <aside class="sk-progress-panel">
+      <div class="sk-small-icon"><i data-lucide="sprout" aria-hidden="true"></i></div>
+      <h2>Мои навыки</h2>
+      <p>Практика складывается из маленьких шагов.</p>
+      <div data-skill-progress></div>
+      <div class="sk-progress-note">Прогресс отражает посещённые занятия.</div>
+    </aside>
+  </div>
+
+  <template id="sk-enrollment-row-template">
+    <article class="sk-enrollment-row">
+      <div class="sk-date-stamp"><strong data-day></strong><span data-month></span></div>
+      <div class="sk-enrollment-info">
+        <span class="sk-state-tag" data-status></span>
+        <h3 data-title></h3>
+        <p data-meta></p>
+        <span class="sk-enrollment-extra" data-extra></span>
+      </div>
+      <div class="sk-row-action" data-actions></div>
+    </article>
+  </template>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/learning.js' %}"></script>
+  <script>window.CampusLearning.start("{{ active_tab }}");</script>
+{% endblock %}
