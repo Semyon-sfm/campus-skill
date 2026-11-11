@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if workshop %}Редактирование воркшопа{% else %}Создание воркшопа{% endif %} — CampusSkill
+{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'workshops:studio' %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> Мои воркшопы
+  </a>
+
+  <div class="sk-editor-heading">
+    <div class="sk-eyebrow">КАБИНЕТ МЕНТОРА</div>
+    <h1>{% if workshop %}Редактирование воркшопа{% else %}Создание воркшопа{% endif %}</h1>
+    <p class="sk-intro-copy">Расскажи, чему научатся участники и как пройдёт встреча.</p>
+  </div>
+
+  {# Форма размечена на сервере, но отправляется в REST API через fetch. #}
+  <form class="sk-editor" data-editor-form novalidate>
+    <section class="sk-form-panel">
+      <h2>О воркшопе</h2>
+
+      <label class="sk-field">Название
+        <input name="title" required maxlength="90"
+               placeholder="Например, первый API на FastAPI"
+               value="{{ workshop.title|default:'' }}">
+      </label>
+
+      <div class="sk-form-grid">
+        <label class="sk-field">Навык
+          <select name="skill">
+            {% for skill in skills %}
+              <option value="{{ skill.slug }}"
+                {% if workshop and workshop.skill_id == skill.pk %}selected{% endif %}>
+                {{ skill.label }}
+              </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="sk-field">Уровень
+          <select name="level">
+            <option value="start"
+              {% if workshop.level == "start" %}selected{% endif %}>С нуля</option>
+            <option value="basic"
+              {% if workshop.level == "basic" %}selected{% endif %}>Есть база</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="sk-field">Описание
+        <textarea name="description" rows="3" required maxlength="600"
+                  placeholder="Тема, результат и кому будет полезна встреча">{{ workshop.description|default:'' }}</textarea>
+      </label>
+
+      <label class="sk-field">Программа
+        <textarea name="program" rows="4" required
+                  placeholder="Каждый пункт — с новой строки">{% if workshop %}{% for item in workshop.program %}{{ item }}
+{% endfor %}{% endif %}</textarea>
+      </label>
+
+      <label class="sk-field">Требования к участникам
+        <textarea name="requirements" rows="2" required
+                  placeholder="Опыт, программы и материалы">{{ workshop.requirements|default:'' }}</textarea>
+      </label>
+    </section>
+
+    <section class="sk-form-panel">
+      <h2>Когда и где</h2>
+      <div class="sk-form-grid">
+        <label class="sk-field">Дата
+          <input name="date" type="date" required
+                 value="{{ workshop.date|date:'Y-m-d'|default:'' }}">
+        </label>
+        <label class="sk-field">Начало
+          <input name="time" type="time" required
+                 value="{{ workshop.time|time:'H:i'|default:'18:00' }}">
+        </label>
+        <label class="sk-field">Длительность, минут
+          <input name="duration" type="number" required min="30" max="480" step="15"
+                 value="{{ workshop.duration|default:90 }}">
+        </label>
+        <label class="sk-field">Максимум участников
+          <input name="capacity" type="number" required
+                 min="{% if workshop %}{{ workshop.registered|default:2 }}{% else %}2{% endif %}"
+                 max="100" value="{{ workshop.capacity|default:12 }}">
+        </label>
+        <label class="sk-field">Формат
+          <select name="format">
+            <option value="offline"
+              {% if workshop.format == "offline" %}selected{% endif %}>Офлайн</option>
+            <option value="online"
+              {% if workshop.format == "online" %}selected{% endif %}>Онлайн</option>
+          </select>
+        </label>
+        <label class="sk-field">Цена, ₽
+          <input name="amount" type="number" required min="0" max="10000" step="50"
+                 value="{{ workshop.amount|default:0 }}">
+          <small>0 — бесплатное участие</small>
+        </label>
+      </div>
+
+      <label class="sk-field">
+        <span data-location-label>Место проведения</span>
+        <input name="place" required placeholder="Корпус и аудитория"
+               value="{{ workshop.place|default:'' }}">
+      </label>
+
+      <label class="sk-check">
+        <input name="approval" type="checkbox"
+          {% if workshop.requires_approval %}checked{% endif %}>
+        <span>Подтверждать заявки участников вручную</span>
+      </label>
+    </section>
+
+    <p class="sk-validation" role="alert" data-form-error hidden></p>
+
+    <div class="sk-editor-actions">
+      <span class="sk-subtle" data-hint>
+        {% if workshop and workshop.status == "published" %}
+          Воркшоп опубликован — изменения увидят участники.
+        {% else %}
+          Черновик виден только тебе.
+        {% endif %}
+      </span>
+      <div class="sk-action-row">
+        <button type="submit" name="intent" value="draft" class="sk-secondary cursor-interaction">
+          {% if workshop and workshop.status == "published" %}
+            Сохранить изменения
+          {% else %}Сохранить черновик{% endif %}
+        </button>
+        {% if not workshop or workshop.status != "published" %}
+          <button type="submit" name="intent" value="publish"
+                  class="sk-primary cursor-interaction">Опубликовать</button>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/editor.js' %}"></script>
+  <script>
+    window.CampusEditor.start({
+      workshopId: {% if workshop %}{{ workshop.pk }}{% else %}null{% endif %},
+      studioUrl: "{% url 'workshops:studio' %}"
+    });
+  </script>
+{% endblock %}

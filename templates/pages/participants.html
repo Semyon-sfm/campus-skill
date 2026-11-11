@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Участники «{{ workshop.title }}» — CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'workshops:studio' %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> Мои воркшопы
+  </a>
+
+  <div class="sk-page-intro">
+    <div>
+      <div class="sk-eyebrow">УЧАСТНИКИ ВОРКШОПА</div>
+      <h1>{{ workshop.title }}</h1>
+      <p>{{ workshop.full_date_label }} · {{ workshop.place }}</p>
+    </div>
+  </div>
+
+  <div class="sk-section-heading">
+    <h2 data-participant-count>—</h2>
+    <span class="sk-state-tag sk-state-confirmed">{{ workshop.availability_label }}</span>
+  </div>
+
+  <label class="sk-search sk-participant-search">
+    <i data-lucide="search" aria-hidden="true"></i>
+    <input type="search" placeholder="Имя или группа" aria-label="Поиск участников"
+           data-participant-search>
+  </label>
+
+  <div class="sk-people-list" data-people-list></div>
+  <p class="sk-empty" data-people-empty hidden>
+    Участников с таким именем или группой нет.
+  </p>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/participants.js' %}"></script>
+  <script>window.CampusParticipants.start({{ workshop.pk }});</script>
+{% endblock %}

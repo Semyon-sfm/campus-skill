@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Мои воркшопы — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro sk-studio-intro">
+    <div>
+      <div class="sk-eyebrow">КАБИНЕТ МЕНТОРА</div>
+      <h1>Мои воркшопы</h1>
+      <p>Управляй занятиями, участниками и обратной связью.</p>
+    </div>
+    <a class="sk-primary cursor-interaction" href="{% url 'workshops:editor_create' %}">
+      <i data-lucide="plus" aria-hidden="true"></i> Создать воркшоп
+    </a>
+  </div>
+
+  <div class="sk-studio-summary">
+    <span><strong data-published-count>—</strong> предстоящих</span>
+    <span><strong data-draft-count>—</strong> в черновиках</span>
+  </div>
+
+  <div data-studio-list></div>
+
+  <template id="sk-studio-row-template">
+    <article class="sk-studio-row">
+      <div class="sk-studio-row-main">
+        <span class="sk-state-tag" data-status></span>
+        <h2 data-title></h2>
+        <p data-meta></p>
+      </div>
+      <div class="sk-studio-row-seats" data-seats></div>
+      <div class="sk-action-row" data-actions></div>
+    </article>
+  </template>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/studio.js' %}"></script>
+{% endblock %}
