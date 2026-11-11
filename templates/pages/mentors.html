@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Менторы кампуса — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro">
+    <div>
+      <div class="sk-eyebrow">ЛЮДИ, У КОТОРЫХ ЕСТЬ ЧЕМУ НАУЧИТЬСЯ</div>
+      <h1>Менторы кампуса</h1>
+      <p>Практический опыт, понятные объяснения и небольшие группы.</p>
+    </div>
+  </div>
+
+  <div class="sk-mentor-grid" data-mentor-list></div>
+
+  <template id="sk-mentor-card-template">
+    <article class="sk-mentor-card">
+      <span class="sk-large-avatar" data-initials></span>
+      <span class="sk-rating" data-rating></span>
+      <h2 data-name></h2>
+      <span class="sk-tag" data-skill></span>
+      <p data-experience></p>
+      <div class="sk-mentor-card-meta">
+        <span data-format></span>
+        <strong data-price></strong>
+      </div>
+      <a class="sk-secondary sk-full cursor-interaction" data-open>Посмотреть профиль</a>
+    </article>
+  </template>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    /* Карточки менторов приходят из GET /api/mentors/ */
+    (function () {
+      var api = window.CampusApi;
+      var ui = window.CampusUI;
+      var list = document.querySelector("[data-mentor-list]");
+
+      ui.setLoading(list);
+
+      api
+        .get("/api/mentors/")
+        .then(function (items) {
+          list.replaceChildren();
+          if (!items.length) {
+            var box = document.createElement("div");
+            box.className = "sk-empty";
+            var title = document.createElement("h3");
+            title.textContent = "Менторов пока нет";
+            box.append(title);
+            list.append(box);
+            return;
+          }
+          items.forEach(function (item) {
+            var fragment = ui.clone("sk-mentor-card-template");
+            var card = fragment.querySelector("article");
+            ui.fill(card, "[data-initials]", item.initials);
+            ui.fill(card, "[data-rating]", item.rating ? "★ " + item.rating : "Новый");
+            ui.fill(card, "[data-name]", item.full_name);
+            ui.fill(card, "[data-skill]", item.skill);
+            ui.fill(card, "[data-experience]", item.experience);
+            ui.fill(card, "[data-format]", item.format_label);
+            ui.fill(card, "[data-price]", item.price_label);
+            ui.link(card, "[data-open]", item.url);
+            list.append(fragment);
+          });
+          ui.icons(list, 17);
+        })
+        .catch(function (error) {
+          ui.setError(list, error);
+        });
+    })();
+  </script>
+{% endblock %}

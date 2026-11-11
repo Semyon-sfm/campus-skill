@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Мой профиль — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro">
+    <div>
+      <div class="sk-eyebrow">ЛИЧНЫЙ КАБИНЕТ</div>
+      <h1>Мой профиль</h1>
+      <p>Информация о тебе и навыки, которые тебе интересны.</p>
+    </div>
+  </div>
+
+  <div class="sk-settings-layout">
+    <form class="sk-form-panel" data-profile-form novalidate>
+      <div class="sk-profile-summary">
+        <span class="sk-large-avatar" data-profile-initials>{{ user.initials }}</span>
+        <div>
+          <h2 data-profile-name>{{ user.full_name }}</h2>
+          <span class="sk-state-tag">
+            {% if user.is_mentor %}Ментор{% else %}Участник{% endif %}
+          </span>
+        </div>
+      </div>
+
+      <label class="sk-field">Имя и фамилия
+        <input name="full_name" required minlength="3" maxlength="70" autocomplete="name"
+               value="{{ user.full_name }}">
+      </label>
+
+      <label class="sk-field">Учебная группа
+        <input name="study_group" maxlength="30" value="{{ user.study_group }}">
+      </label>
+
+      {% if user.is_mentor %}
+        <label class="sk-field">Опыт и специализация
+          <input name="experience" maxlength="150" value="{{ user.experience }}">
+        </label>
+      {% endif %}
+
+      <label class="sk-field">О себе
+        <textarea name="bio" rows="4" maxlength="700"
+                  placeholder="Чем занимаешься и чему хочешь научиться">{{ user.bio }}</textarea>
+      </label>
+
+      <p class="sk-validation" role="alert" data-profile-error hidden></p>
+
+      <button type="submit" class="sk-primary cursor-interaction">Сохранить профиль</button>
+      <p class="sk-inline-status" data-profile-status aria-live="polite"></p>
+    </form>
+
+    <aside class="sk-profile-side">
+      <section class="sk-form-panel">
+        <h2>Интересующие навыки</h2>
+        <p class="sk-intro-copy">Выбери темы, которые хочешь изучать.</p>
+        <div class="sk-interest-list" data-interest-list>
+          {% for skill in skills %}
+            <label class="sk-interest-option">
+              <input type="checkbox" value="{{ skill.slug }}"
+                {% if skill in user.interests.all %}checked{% endif %}>
+              <i data-lucide="{{ skill.icon }}" aria-hidden="true"></i>
+              <span>{{ skill.label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+        <button type="button" class="sk-secondary sk-full cursor-interaction"
+                data-save-interests>Сохранить интересы</button>
+        <p class="sk-inline-status" data-interest-status aria-live="polite"></p>
+      </section>
+
+      <section class="sk-form-panel">
+        <h2>Управление кабинетом</h2>
+        <a class="sk-settings-link cursor-interaction" href="{% url 'accounts:settings' %}">
+          <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+          <span>Настройки уведомлений</span>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </a>
+        <a class="sk-settings-link cursor-interaction" href="{% url 'notifications:list' %}">
+          <i data-lucide="bell" aria-hidden="true"></i>
+          <span>Все уведомления</span>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </a>
+        {% if user.is_mentor %}
+          <a class="sk-text-button cursor-interaction"
+             href="{% url 'accounts:mentor_profile' user.pk %}">
+            Мой публичный профиль <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </a>
+        {% else %}
+          <button type="button" class="sk-text-button cursor-interaction" data-become-mentor>
+            Стать ментором <i data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </button>
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/profile.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Уведомления — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-page-intro">
+    <div>
+      <div class="sk-eyebrow">ЛИЧНЫЙ КАБИНЕТ</div>
+      <h1>Уведомления</h1>
+      <p>Изменения записей и напоминания о встречах.</p>
+    </div>
+  </div>
+
+  <div class="sk-notification-list" data-notification-list></div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    /* Лента — GET /api/notifications/, затем POST .../read/ снимает бейдж. */
+    (function () {
+      var api = window.CampusApi;
+      var ui = window.CampusUI;
+      var list = document.querySelector("[data-notification-list]");
+
+      ui.setLoading(list);
+
+      api
+        .get("/api/notifications/")
+        .then(function (data) {
+          list.replaceChildren();
+
+          if (!data.results.length) {
+            var box = document.createElement("div");
+            box.className = "sk-empty";
+            var title = document.createElement("h3");
+            title.textContent = "Уведомлений пока нет";
+            var copy = document.createElement("p");
+            copy.textContent = "Здесь появятся напоминания и изменения записей.";
+            box.append(title, copy);
+            list.append(box);
+            return;
+          }
+
+          data.results.forEach(function (item) {
+            var row = document.createElement("article");
+            row.className = "sk-notification-row";
+
+            var icon = document.createElement("div");
+            icon.className = "sk-small-icon";
+            var glyph = document.createElement("i");
+            glyph.setAttribute("data-lucide", "bell");
+            glyph.setAttribute("aria-hidden", "true");
+            icon.append(glyph);
+
+            var body = document.createElement("div");
+            var heading = document.createElement("h3");
+            heading.textContent = item.title;
+            var copy = document.createElement("p");
+            copy.textContent = item.body;
+            var time = document.createElement("small");
+            time.textContent = item.time_label;
+            body.append(heading, copy, time);
+
+            if (item.workshop_url) {
+              var link = document.createElement("a");
+              link.className = "sk-text-button cursor-interaction";
+              link.href = item.workshop_url;
+              link.textContent = "Подробнее";
+              body.append(link);
+            }
+
+            row.append(icon, body);
+            list.append(row);
+          });
+
+          ui.icons(list, 17);
+
+          /* Открыли страницу — значит прочитали: гасим бейдж в шапке. */
+          if (data.unread) {
+            api.post("/api/notifications/read/").then(function () {
+              var badge = document.querySelector("[data-unread]");
+              if (badge) badge.hidden = true;
+            });
+          }
+        })
+        .catch(function (error) {
+          ui.setError(list, error);
+        });
+    })();
+  </script>
+{% endblock %}

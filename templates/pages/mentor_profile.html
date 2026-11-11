@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ mentor.full_name }} — ментор CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'accounts:mentors' %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> Все менторы
+  </a>
+
+  <div class="sk-profile-heading">
+    <span class="sk-large-avatar">{{ mentor.initials }}</span>
+    <div>
+      <div class="sk-eyebrow">МЕНТОР CAMPUSSKILL</div>
+      <h1>{{ mentor.full_name }}</h1>
+      <p>{{ mentor.experience|default:"Ментор кампуса" }}</p>
+      <div class="sk-profile-tags">
+        {% with first=workshops.first %}
+          {% if first %}<span class="sk-tag">{{ first.skill.label }}</span>{% endif %}
+        {% endwith %}
+        <span class="sk-rating">
+          {% if mentor.mentor_rating %}
+            ★ {{ mentor.mentor_rating }} · {{ mentor.mentor_review_count }} отз.
+          {% else %}Новый ментор{% endif %}
+        </span>
+        <span class="sk-subtle">{{ mentor.teaching_format_label }}</span>
+        <span class="sk-subtle">{{ mentor.price_label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="sk-profile-about">
+    <h2>О менторе</h2>
+    <p>{{ mentor.bio|default:"Ментор пока не заполнил описание." }}</p>
+  </section>
+
+  <section>
+    <div class="sk-section-heading"><h2>Ближайшие воркшопы</h2></div>
+    <div class="sk-workshop-grid" data-mentor-workshops></div>
+  </section>
+
+  <section class="sk-profile-reviews">
+    <h2>Что говорят участники</h2>
+    <div>
+      {% for review in reviews %}
+        <article class="sk-review-quote">
+          <div>
+            <strong>{{ review.author.full_name }}</strong>
+            <span class="sk-rating">★ {{ review.mentor_score }}</span>
+          </div>
+          <p>{{ review.text }}</p>
+          <small class="sk-subtle">{{ review.workshop.title }}</small>
+        </article>
+      {% empty %}
+        <p class="sk-subtle">Отзывов пока нет.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% include "partials/workshop_card_template.html" %}
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/cards.js' %}"></script>
+  <script>
+    /* Воркшопы ментора — тот же каталожный эндпоинт с фильтром по ментору. */
+    (function () {
+      var ui = window.CampusUI;
+      var container = document.querySelector("[data-mentor-workshops]");
+
+      ui.setLoading(container);
+
+      window.CampusApi
+        .get("/api/workshops/", { mentor: {{ mentor.pk }}, limit: 6 })
+        .then(function (data) {
+          container.replaceChildren();
+          if (!data.results.length) {
+            var box = document.createElement("div");
+            box.className = "sk-empty";
+            var title = document.createElement("h3");
+            title.textContent = "Запланированных воркшопов нет";
+            var copy = document.createElement("p");
+            copy.textContent = "Загляни позже — ментор ещё добавит встречи.";
+            box.append(title, copy);
+            container.append(box);
+            return;
+          }
+          window.CampusCards.renderInto(container, data.results, "replace");
+        })
+        .catch(function (error) {
+          ui.setError(container, error);
+        });
+    })();
+  </script>
+{% endblock %}

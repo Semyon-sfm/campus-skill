@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки уведомлений — CampusSkill{% endblock %}
+
+{% block content %}
+  <a class="sk-back cursor-interaction" href="{% url 'accounts:profile' %}">
+    <i data-lucide="arrow-left" aria-hidden="true"></i> К профилю
+  </a>
+
+  <div class="sk-narrow">
+    <div class="sk-eyebrow">НАСТРОЙКИ КАБИНЕТА</div>
+    <h1>Уведомления</h1>
+    <p class="sk-intro-copy">Выбери, о чём напоминать внутри CampusSkill.</p>
+
+    <form class="sk-form-panel" data-settings-form>
+      <label class="sk-notification-option">
+        <span>
+          <strong>Изменения статуса записи</strong>
+          <small>Подтверждение, отмена и свободное место в группе.</small>
+        </span>
+        <input type="checkbox" name="status_changes"
+               aria-label="Уведомления об изменении статуса">
+      </label>
+
+      <label class="sk-notification-option">
+        <span>
+          <strong>Напоминания о встречах</strong>
+          <small>Чтобы успеть подготовиться к воркшопу.</small>
+        </span>
+        <input type="checkbox" name="reminders" aria-label="Напоминания о встречах">
+      </label>
+
+      <label class="sk-field sk-reminder-time">Когда напомнить
+        <select name="reminder_hours">
+          <option value="24">За сутки</option>
+          <option value="2">За 2 часа</option>
+          <option value="1">За 1 час</option>
+        </select>
+      </label>
+
+      <label class="sk-notification-option">
+        <span>
+          <strong>Воркшопы по моим интересам</strong>
+          <small>Новые встречи по выбранным в профиле навыкам.</small>
+        </span>
+        <input type="checkbox" name="recommendations"
+               aria-label="Новые воркшопы по интересам">
+      </label>
+
+      <div class="sk-notification-channel">
+        <i data-lucide="inbox" aria-hidden="true"></i>
+        <span>Канал уведомлений: личный кабинет CampusSkill.</span>
+      </div>
+
+      <button type="submit" class="sk-primary cursor-interaction">Сохранить настройки</button>
+      <p class="sk-inline-status" data-settings-status aria-live="polite"></p>
+    </form>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    /* Настройки читаются и пишутся через /api/profile/settings/ */
+    (function () {
+      var api = window.CampusApi;
+      var form = document.querySelector("[data-settings-form]");
+      var status = document.querySelector("[data-settings-status]");
+      var checkboxes = ["status_changes", "reminders", "recommendations"];
+
+      function syncReminderSelect() {
+        form.elements.namedItem("reminder_hours").disabled =
+          !form.elements.namedItem("reminders").checked;
+      }
+
+      form.elements.namedItem("reminders").addEventListener("change", syncReminderSelect);
+
+      api.get("/api/profile/settings/").then(function (data) {
+        checkboxes.forEach(function (key) {
+          form.elements.namedItem(key).checked = Boolean(data[key]);
+        });
+        form.elements.namedItem("reminder_hours").value = String(data.reminder_hours);
+        syncReminderSelect();
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        var payload = { reminder_hours: Number(form.elements.namedItem("reminder_hours").value) };
+        checkboxes.forEach(function (key) {
+          payload[key] = form.elements.namedItem(key).checked;
+        });
+
+        var submit = form.querySelector("button[type=submit]");
+        submit.disabled = true;
+        status.textContent = "";
+
+        api
+          .patch("/api/profile/settings/", payload)
+          .then(function (data) {
+            submit.disabled = false;
+            status.textContent = data.detail;
+          })
+          .catch(function (err) {
+            submit.disabled = false;
+            status.textContent = api.message(err.payload);
+          });
+      });
+    })();
+  </script>
+{% endblock %}
