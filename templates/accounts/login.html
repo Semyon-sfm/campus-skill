@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-auth">
+    <div class="sk-eyebrow">ВХОД В КАБИНЕТ</div>
+    <h1>С возвращением</h1>
+    <p class="sk-intro-copy">Войди, чтобы записываться на воркшопы и проводить свои.</p>
+
+    <form class="sk-form-panel" method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="sk-form-errors" role="alert">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <label class="sk-field">{{ field.label }}
+          {{ field }}
+          {{ field.errors }}
+        </label>
+      {% endfor %}
+
+      <button type="submit" class="sk-primary sk-full cursor-interaction">
+        <i data-lucide="log-in" aria-hidden="true"></i> Войти
+      </button>
+    </form>
+
+    <p class="sk-auth-switch">
+      Нет аккаунта? <a href="{% url 'accounts:register' %}">Зарегистрироваться</a>
+    </p>
+
+    <div class="sk-demo-hint">
+      Демо-доступы: участник <code>anna@campusskill.ru</code>,
+      ментор <code>mikhail@campusskill.ru</code>. Пароль у всех — <code>campus123</code>.
+    </div>
+  </div>
+{% endblock %}

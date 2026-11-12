@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — CampusSkill{% endblock %}
+
+{% block content %}
+  <div class="sk-auth">
+    <div class="sk-eyebrow">РЕГИСТРАЦИЯ</div>
+    <h1>Присоединяйся к кампусу</h1>
+    <p class="sk-intro-copy">
+      Записывайся на воркшопы однокурсников, а потом проводи свои.
+    </p>
+
+    <form class="sk-form-panel" method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="sk-form-errors" role="alert">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        <label class="sk-field">{{ field.label }}
+          {{ field }}
+          {{ field.errors }}
+        </label>
+      {% endfor %}
+
+      <button type="submit" class="sk-primary sk-full cursor-interaction">
+        <i data-lucide="user-plus" aria-hidden="true"></i> Создать аккаунт
+      </button>
+    </form>
+
+    <p class="sk-auth-switch">
+      Уже есть аккаунт? <a href="{% url 'accounts:login' %}">Войти</a>
+    </p>
+  </div>
+{% endblock %}
