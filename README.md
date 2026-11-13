@@ -111,6 +111,7 @@ static/
 | GET | `/api/workshops/mine/` | воркшопы текущего ментора |
 | GET | `/api/workshops/<id>/related/` | похожие по навыку |
 | POST | `/api/workshops/<id>/publish/` | опубликовать черновик |
+| POST | `/api/workshops/<id>/finish/` | завершить досрочно (уведомляет подтверждённых участников) |
 | POST | `/api/workshops/<id>/enroll/` | записаться |
 | GET | `/api/workshops/<id>/participants/` | участники, фильтр `q` |
 

@@ -49,7 +49,7 @@ def workshop_detail(request, pk):
 
 def _detail_action(workshop, enrollment, is_owner):
     """Что показывает главная кнопка на карточке воркшопа — логика из макета."""
-    if workshop.status == "finished":
+    if workshop.is_finished:
         return {"label": "Воркшоп завершён", "note": "Отзывы доступны после участия.",
                 "disabled": True, "kind": "none"}
 

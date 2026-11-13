@@ -224,6 +224,15 @@ body {
   min-width: 0;
 }
 
+/* Кабинет ментора: у <button class="sk-text-button"> цвет и размер сбрасывает
+   правило макета «.sk-app button { font: inherit; color: inherit }» —
+   возвращаем вид текстовой кнопки, как у соседних ссылок. */
+#campusskill-light .sk-studio-row .sk-text-button {
+  color: var(--sk-accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+
 /* Ряд участника у ментора: статус и действие ментора. */
 #campusskill-light .sk-person-row .sk-person-actions {
   display: flex;

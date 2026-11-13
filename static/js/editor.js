@@ -12,6 +12,9 @@
     var locationLabel = document.querySelector("[data-location-label]");
     var formatField = form.elements.namedItem("format");
     var placeField = form.elements.namedItem("place");
+    var skillField = form.elements.namedItem("skill");
+    var tagField = form.elements.namedItem("tag");
+    var artField = form.elements.namedItem("art");
 
     /* Подпись поля места зависит от формата — как в макете. */
     function syncLocationLabel() {
@@ -26,6 +29,17 @@
 
     formatField.addEventListener("change", syncLocationLabel);
     syncLocationLabel();
+
+    /* Пустые тег и надпись на обложке заменяются значениями навыка —
+       показываем их подсказкой. */
+    function syncCoverPlaceholders() {
+      var option = skillField.options[skillField.selectedIndex];
+      tagField.placeholder = option ? option.dataset.tag : "";
+      artField.placeholder = option ? option.dataset.art : "";
+    }
+
+    skillField.addEventListener("change", syncCoverPlaceholders);
+    syncCoverPlaceholders();
 
     /* Запоминаем, какая кнопка нажата: черновик или публикация. */
     var intent = "draft";
@@ -45,6 +59,8 @@
         title: String(data.get("title")).trim(),
         skill: data.get("skill"),
         level: data.get("level"),
+        tag: String(data.get("tag")).trim(),
+        art: String(data.get("art")).trim(),
         description: String(data.get("description")).trim(),
         program: String(data.get("program")),
         requirements: String(data.get("requirements")).trim(),

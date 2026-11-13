@@ -31,7 +31,7 @@
         <label class="sk-field">Навык
           <select name="skill">
             {% for skill in skills %}
-              <option value="{{ skill.slug }}"
+              <option value="{{ skill.slug }}" data-tag="{{ skill.tag }}" data-art="{{ skill.art }}"
                 {% if workshop and workshop.skill_id == skill.pk %}selected{% endif %}>
                 {{ skill.label }}
               </option>
@@ -45,6 +45,21 @@
             <option value="basic"
               {% if workshop.level == "basic" %}selected{% endif %}>Есть база</option>
           </select>
+        </label>
+      </div>
+
+      <div class="sk-form-grid">
+        <label class="sk-field">Тег на обложке
+          <input name="tag" maxlength="40"
+                 placeholder="{{ skills.0.tag|default:'' }}"
+                 value="{{ workshop.tag|default:'' }}">
+          <small>Пусто — будет тег навыка</small>
+        </label>
+        <label class="sk-field">Надпись на обложке
+          <input name="art" maxlength="20"
+                 placeholder="{{ skills.0.art|default:'' }}"
+                 value="{{ workshop.art|default:'' }}">
+          <small>Пусто — будет подпись навыка</small>
         </label>
       </div>
 

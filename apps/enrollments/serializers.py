@@ -76,7 +76,7 @@ class EnrollmentRowSerializer(serializers.ModelSerializer):
         return f"{workshop.mentor.full_name} · {workshop.price_label}"
 
     def _is_finished(self, obj):
-        return obj.workshop.status == "finished" or obj.workshop.is_past
+        return obj.workshop.is_finished
 
     def get_status_label(self, obj):
         if self._is_finished(obj):
@@ -144,7 +144,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Отзыв можно оставить только о воркшопе, в котором ты участвовал."
             )
-        if not (workshop.status == "finished" or workshop.is_past):
+        if not workshop.is_finished:
             raise serializers.ValidationError("Воркшоп ещё не прошёл.")
         if Review.objects.filter(workshop=workshop, author=request.user).exists():
             raise serializers.ValidationError("Ты уже оставил отзыв об этом воркшопе.")

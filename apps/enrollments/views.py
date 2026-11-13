@@ -15,6 +15,8 @@ def enroll(request, pk):
         status="published",
     )
 
+    if workshop.is_finished:
+        return redirect("workshops:detail", pk=pk)
     if workshop.enrollment_for(request.user):
         return redirect("enrollments:learning")
     if workshop.mentor_id == request.user.id:
@@ -144,7 +146,7 @@ def review(request, pk):
         Enrollment, workshop=workshop, participant=request.user, status="confirmed"
     )
 
-    if not (workshop.status == "finished" or workshop.is_past):
+    if not workshop.is_finished:
         return redirect("enrollments:learning")
 
     existing = Review.objects.filter(workshop=workshop, author=request.user).first()

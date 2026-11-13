@@ -1,9 +1,8 @@
-from django.db.models import Q
-from django.utils import timezone
 from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.response import Response
 
 from apps.notifications.services import notify
+from apps.workshops.models import finished_q
 
 from .models import Enrollment, Review
 from .serializers import EnrollmentRowSerializer, ReviewSerializer
@@ -31,7 +30,6 @@ class EnrollmentViewSet(
 
     def list(self, request, *args, **kwargs):
         tab = request.query_params.get("tab", "upcoming")
-        now = timezone.now()
         queryset = self.get_queryset()
 
         if tab == "waitlist":
@@ -39,14 +37,13 @@ class EnrollmentViewSet(
         elif tab == "history":
             queryset = (
                 queryset.exclude(status="waitlist")
-                .filter(Q(workshop__status="finished") | Q(workshop__date__lt=now.date()))
+                .filter(finished_q("workshop__"))
                 .order_by("-workshop__date", "-workshop__time")
             )
         else:
             queryset = (
                 queryset.exclude(status="waitlist")
-                .exclude(workshop__status="finished")
-                .filter(workshop__date__gte=now.date())
+                .exclude(finished_q("workshop__"))
             )
 
         serializer = self.get_serializer(queryset, many=True)

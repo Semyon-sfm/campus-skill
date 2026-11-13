@@ -27,6 +27,18 @@ class Skill(models.Model):
         return self.label
 
 
+def finished_q(prefix=""):
+    """Условие «воркшоп завершён» для фильтров, в том числе через связи.
+
+    Завершён — если ментор или админ закрыл его вручную, либо если
+    опубликованная встреча уже закончилась по времени. Черновик со
+    старой датой завершённым не считается: встречи не было.
+    """
+    return Q(**{f"{prefix}status": "finished"}) | Q(
+        **{f"{prefix}status": "published", f"{prefix}ends_at__lte": timezone.now()}
+    )
+
+
 class WorkshopQuerySet(models.QuerySet):
     def with_stats(self):
         return self.annotate(
@@ -43,7 +55,7 @@ class WorkshopQuerySet(models.QuerySet):
         return self.filter(status="published")
 
     def visible_in_catalog(self):
-        return self.published().filter(date__gte=timezone.localdate())
+        return self.published().filter(ends_at__gt=timezone.now())
 
 
 class Workshop(models.Model):
@@ -76,6 +88,8 @@ class Workshop(models.Model):
     date = models.DateField("дата")
     time = models.TimeField("начало")
     duration = models.PositiveIntegerField("длительность, минут", default=90)
+    # Хранится, чтобы фильтровать завершённые воркшопы в БД; считается в save().
+    ends_at = models.DateTimeField("окончание", editable=False, db_index=True)
 
     capacity = models.PositiveIntegerField("максимум участников", default=12)
     format = models.CharField("формат", max_length=10, choices=FORMAT_CHOICES, default="offline")
@@ -97,6 +111,13 @@ class Workshop(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        self.ends_at = self.starts_at + timedelta(minutes=self.duration)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and {"date", "time", "duration"} & set(update_fields):
+            kwargs["update_fields"] = {*update_fields, "ends_at"}
+        super().save(*args, **kwargs)
 
     # --- Производные значения ---
 
@@ -129,16 +150,21 @@ class Workshop(models.Model):
         return timezone.make_aware(naive, timezone.get_current_timezone())
 
     @property
-    def ends_at(self):
-        return self.starts_at + timedelta(minutes=self.duration)
-
-    @property
     def end_time(self):
         return self.ends_at.time()
 
     @property
     def is_past(self):
-        return self.ends_at < timezone.now()
+        return self.ends_at <= timezone.now()
+
+    @property
+    def is_finished(self):
+        """То же условие, что finished_q(), — для одного объекта."""
+        return self.status == "finished" or (self.status == "published" and self.is_past)
+
+    @property
+    def effective_status(self):
+        return "finished" if self.is_finished else self.status
 
     @property
     def rating(self):

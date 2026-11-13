@@ -3,7 +3,7 @@ from rest_framework import permissions, views
 from rest_framework.response import Response
 
 from apps.notifications.services import settings_for
-from apps.workshops.models import Skill
+from apps.workshops.models import Skill, finished_q
 
 from .serializers import (
     InterestsSerializer,
@@ -90,8 +90,8 @@ class SkillProgressView(views.APIView):
                     filter=Q(
                         workshops__enrollments__participant=request.user,
                         workshops__enrollments__status="confirmed",
-                        workshops__status="finished",
-                    ),
+                    )
+                    & finished_q("workshops__"),
                     distinct=True,
                 )
             )

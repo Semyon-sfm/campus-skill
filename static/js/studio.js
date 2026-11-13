@@ -41,6 +41,21 @@
       });
   }
 
+  function finish(id, title, node) {
+    if (!window.confirm("Завершить воркшоп «" + title + "»? Запись закроется, а участники смогут оставить отзывы.")) return;
+    node.disabled = true;
+    api
+      .post("/api/workshops/" + id + "/finish/")
+      .then(function () {
+        ui.flash("Воркшоп завершён — участники могут оставить отзывы.");
+        load();
+      })
+      .catch(function (error) {
+        node.disabled = false;
+        ui.flash(api.message(error.payload), true);
+      });
+  }
+
   function remove(id, title, node) {
     if (!window.confirm("Удалить воркшоп «" + title + "»?")) return;
     node.disabled = true;
@@ -92,6 +107,11 @@
       );
     } else if (item.status === "published") {
       actions.append(link("/studio/" + item.id + "/edit/", "Редактировать"));
+      actions.append(
+        button("Завершить воркшоп", "sk-text-button", function (event) {
+          finish(item.id, item.title, event.currentTarget);
+        })
+      );
       actions.append(
         link("/studio/" + item.id + "/participants/", "Участники", "sk-secondary")
       );

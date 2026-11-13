@@ -165,7 +165,7 @@ class WorkshopViewSet(viewsets.ModelViewSet):
         order = {"published": 0, "draft": 1, "finished": 2}
         workshops = sorted(
             self._base_queryset().filter(mentor=request.user),
-            key=lambda w: (order.get(w.status, 9), w.date, w.time),
+            key=lambda w: (order.get(w.effective_status, 9), w.date, w.time),
         )
         context = self.get_serializer_context()
         return Response(WorkshopCardSerializer(workshops, many=True, context=context).data)
@@ -194,11 +194,40 @@ class WorkshopViewSet(viewsets.ModelViewSet):
         return Response(WorkshopCardSerializer(workshop, context=self.get_serializer_context()).data)
 
     @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
+    def finish(self, request, pk=None):
+        """Ментор завершает воркшоп вручную, не дожидаясь времени окончания."""
+        workshop = self.get_object()
+        if workshop.mentor_id != request.user.id:
+            return Response({"detail": "Это не ваш воркшоп."}, status=status.HTTP_403_FORBIDDEN)
+        if workshop.is_finished:
+            return Response(
+                {"detail": "Воркшоп уже завершён."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if workshop.status != "published":
+            return Response(
+                {"detail": "Завершить можно только опубликованный воркшоп."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        workshop.status = "finished"
+        workshop.save(update_fields=["status", "updated_at"])
+
+        confirmed = workshop.enrollments.filter(status="confirmed").select_related("participant")
+        for enrollment in confirmed:
+            notify(
+                enrollment.participant,
+                f"Поделись впечатлениями о «{workshop.title}»",
+                "Воркшоп завершён. Твой отзыв поможет другим участникам.",
+                workshop=workshop,
+            )
+        return Response(WorkshopCardSerializer(workshop, context=self.get_serializer_context()).data)
+
+    @action(detail=True, methods=["post"], permission_classes=[permissions.IsAuthenticated])
     def enroll(self, request, pk=None):
         """Запись на воркшоп. Статус выбирается как в макете."""
         workshop = self.get_object()
 
-        if workshop.status != "published":
+        if workshop.status != "published" or workshop.is_finished:
             return Response(
                 {"detail": "Запись на этот воркшоп закрыта."},
                 status=status.HTTP_400_BAD_REQUEST,

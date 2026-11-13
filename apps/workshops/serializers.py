@@ -58,6 +58,8 @@ class WorkshopCardSerializer(serializers.ModelSerializer):
 
     tag = serializers.CharField(source="display_tag", read_only=True)
     art = serializers.CharField(source="display_art", read_only=True)
+    # Прошедший опубликованный воркшоп отдаём как завершённый.
+    status = serializers.CharField(source="effective_status", read_only=True)
     format_label = serializers.CharField(read_only=True)
     date_label = serializers.CharField(source="short_date_label", read_only=True)
     duration_label = serializers.CharField(read_only=True)
@@ -141,6 +143,8 @@ class WorkshopWriteSerializer(serializers.ModelSerializer):
             "title",
             "skill",
             "level",
+            "tag",
+            "art",
             "description",
             "program",
             "requirements",
